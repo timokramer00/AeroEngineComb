@@ -23,3 +23,14 @@ cp_gas=1150
 mdot=[]
 for i in range(4):
     mdot.append((mdot3[i]*cp_gas*(T4[i]-T3[i]))/(cceff*abs(calvalue)))
+
+
+#Equivalence Ratio Calcs
+FAR_stoich_ker=0.0682 #READER
+ER=[]
+
+for i in range(4):
+    FAR_actual=mdot[i]/mdot3[i]
+    ER.append(FAR_actual/FAR_stoich_ker)
+
+#Equivalence Ratio Calcs (In zones)
