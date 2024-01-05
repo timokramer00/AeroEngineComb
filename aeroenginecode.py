@@ -34,3 +34,7 @@ for i in range(4):
     ER.append(FAR_actual/FAR_stoich_ker)
 
 #Equivalence Ratio Calcs (In zones)
+
+print(calvalue)
+print(mdot)
+print(ER)
