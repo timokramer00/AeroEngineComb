@@ -55,15 +55,19 @@ class Combustor:
         moles_fuel = self.mdot_fuel * (1-fuel_burnt_frac) / self.molar_mass["fuel"]
         moles_ox = ox_content / self.molar_mass["O2"]
         o2_per_fuel = 81/4  # mol
-    
+        e = moles_fuel* self.molar_mass["fuel"]
+        print(f"cur fuel: {e :.3f}")
     
         if moles_ox >= moles_fuel * o2_per_fuel:
             # fuel limiting
-            fuel_burnt = moles_fuel / self.molar_mass["fuel"]
+            fuel_burnt = moles_fuel * self.molar_mass["fuel"]
             energy_released = -fuel_burnt * self.calvalue # minus to make it positve
             fuel_burnt_frac += fuel_burnt / self.mdot_fuel
             ox_content -= moles_fuel * o2_per_fuel
             print("Ox rich")
+            print(fuel_burnt)
+            print(fuel_burnt_frac)
+            print(ox_content)
             
         else:
             # fuel rich
@@ -72,6 +76,9 @@ class Combustor:
             fuel_burnt_frac += fuel_burnt / self.mdot_fuel
             ox_content = 0
             print("Fuel rich")
+            print(fuel_burnt)
+            print(fuel_burnt_frac)
+            print(ox_content)
             
         if energy_released < 0:
             raise ValueError(f"reaction is endothermic: \nburnt fuel: {fuel_burnt :.3f} kg \ncalval: {self.calvalue :.3f} j/kg")
@@ -82,9 +89,9 @@ class Combustor:
         # total energy
         energy_convected_in = (temperature * current_air_mass + new_air * temp_in)*self.cp_gas
         air_out = current_air_mass + new_air
-        print(air_out)
-        print(energy_convected_in)
-        print(energy_in)
+        print(f"air out: {air_out :.3f}")
+        print(f"energy in {energy_convected_in :.3f}")
+        print(f"comb in: {energy_in:.3f} \n")
         return (energy_convected_in + energy_in) / air_out / self.cp_gas, air_out
         # divide by heat cap
     
