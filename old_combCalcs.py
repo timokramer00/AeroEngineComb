@@ -20,8 +20,7 @@ class Combustor:
         self.stations = ["Injector", "Primary Zone", "Secondary Zone", "Dilution Zone"]
         self.mdot_fuel = None
         
-    def plot_all(self):
-        # TODO modify to add equiv ratio to plots
+    def plot_temp_distr_all_thrust(self):
         plt.grid()
         plt.xlabel("Axial position [m]")
         plt.ylabel("Temperature [K]")
@@ -99,7 +98,6 @@ class Combustor:
         # divide by heat cap
     
     def add_to_plot(self, thrust, temperature, total_equivalence_ratio):
-        # TODO modify to add equiv ratio
         plt.plot(self.stations_positions, temperature, label=f"{thrust} kN")
         plt.scatter(self.stations_positions, temperature)
         
