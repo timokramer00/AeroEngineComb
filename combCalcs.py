@@ -1,5 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from polyLib import CO2, water, N2, fuel
+from dataclasses import dataclass
+
+
+class Massflows:
+    O2: float
+    CO2: float
+    fuel: float
+    N2: float
+    water: float
+
 
 class Combustor:
     def __init__(self, form_enthalpy, eng_spec, molar_mass, volume=0.25, x1 = 0.07, x2 = 0.08, combustion_eff = 0.995):
@@ -13,12 +24,12 @@ class Combustor:
         self.volume = volume  # m3
         self.ox_frac = 0.2
         self.comb_eff = combustion_eff
+        self.mdots = Massflows(0, 0, 0, 0, 0)
         
         x3 = 0.42 - x1 - x2 - 0.1
         self.zonal_admittance = [0.16, 2*x1, 2*x2, 2*x3 + 0.2] 
         self.stations_positions = [0.05, 0.07, 0.09, 0.15, 0.25]
         self.stations = ["Injector", "Primary Zone", "Secondary Zone", "Dilution Zone"]
-        self.mdot_fuel = None
         
     def plot_all(self):
         # TODO modify to add equiv ratio to plots
@@ -34,69 +45,47 @@ class Combustor:
         plt.show()
         
     def compute_temp_total_equiv(self, thrust):
-        air_in, press_in, temp_in, temp_out, self.mdot_fuel = self.get_conditions(thrust)
+        air_in, press_in, temp_in, temp_out, self.mdots.fuel = self.get_conditions(thrust)
         
         temp = temp_in
         temperatures = [temp]
         
-        current_air = 0
-        ox_content = 0
-        fuel_burnt_frac = 0
         for airfrac in self.zonal_admittance:
-            ox_content += airfrac * air_in * self.ox_frac
+            # get added air
+            self.mdots.N2 += (1 - self.ox_frac) * airfrac * air_in
+            self.mdot.O2 = self.ox_frac airfrac * air_in
             
-            fuel_burnt_frac, energy_released, ox_content = self.compute_burn_and_energy_released(fuel_burnt_frac, ox_content)
-            
-            temp, current_air = self.calculate_temperature(temp, current_air, airfrac*air_in, energy_released, temp_in)
+            temp = self.compute_burn(temp)
             
             temperatures.append(temp)
         #TODO implement equivalence ratio
         return temperatures
     
-    def compute_burn_and_energy_released(self, fuel_burnt_frac, ox_content):
-        moles_fuel = self.mdot_fuel * (1-fuel_burnt_frac) / self.molar_mass["fuel"]
-        moles_ox = ox_content / self.molar_mass["O2"]
-        o2_per_fuel = 81/4  # mol
+    def compute_burn(self, mdot_O2, mdot_fuel, temp_in):
+        moles_fuel = mdot_fuel / self.molar_mass["fuel"]
+        moles_ox = mdot_O2 / self.molar_mass["O2"]
+        # mol ratios
+        o2_per_fuel = 81/4
+        CO2_per_fuel = 0
+        water_per_fuel = 0
         
-        e = moles_fuel* self.molar_mass["fuel"]
-        print(f"cur fuel: {e :.3f}")
-    
-        if moles_ox >= moles_fuel * o2_per_fuel:
-            # fuel limiting
-            fuel_burnt = moles_fuel * self.molar_mass["fuel"]
-            energy_released = -fuel_burnt * self.calvalue # minus to make it positve
-            fuel_burnt_frac += fuel_burnt / self.mdot_fuel
-            ox_content -= moles_fuel * o2_per_fuel * self.molar_mass["O2"]
-            print("Ox rich")
-            print(f"Fuel burnt: {fuel_burnt :.3f}")
-            print(f"Fuel burnt frac: {fuel_burnt_frac :.3f}")
-            print(f"Ox content: {ox_content :.3f}")
-            
+        
+        # TODO implement iterative solver
+        # fuel rich
+        if moles_ox/moles_fuel <= o2_per_fuel:
+            # compute new mole values
+            pass
+        
+        # ox rich
         else:
-            # fuel rich
-            fuel_burnt = moles_ox / o2_per_fuel * self.molar_mass["fuel"]
-            energy_released = -fuel_burnt * self.calvalue
-            fuel_burnt_frac += fuel_burnt / self.mdot_fuel
-            ox_content = 0
-            print("Fuel rich")
-            print(f"Fuel burnt: {fuel_burnt :.3f}")
-            print(f"Fuel burnt frac: {fuel_burnt_frac :.3f}")
-            print(f"Ox content: {ox_content :.3f}")
-            
-        if energy_released < 0:
-            raise ValueError(f"reaction is endothermic: \nburnt fuel: {fuel_burnt :.3f} kg \ncalval: {self.calvalue :.3f} j/kg")
+            pass
+                    
                              
-        return fuel_burnt_frac, energy_released*self.comb_eff, ox_content
+        return mdot_fuel, new_co2, new_water, mdot_O2, product_temp
     
     def calculate_temperature(self, temperature, current_air_mass, new_air, energy_in, temp_in):
-        # total energy
-        energy_convected_in = temperature * current_air_mass*self.cp_gas + new_air * temp_in*self.cp_air
-        air_out = current_air_mass + new_air
-        print(f"air out: {air_out :.3f}")
-        print(f"energy in {energy_convected_in :.3f}")
-        print(f"comb in: {energy_in:.3f} \n")
-        return (energy_convected_in + energy_in) / air_out / self.cp_gas, air_out
-        # divide by heat cap
+        
+        return
     
     def add_to_plot(self, thrust, temperature, total_equivalence_ratio):
         # TODO modify to add equiv ratio
