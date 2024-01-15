@@ -28,13 +28,23 @@ for i in range(4):
 #Equivalence Ratio Calcs
 FAR_stoich_ker=0.0682 #READER
 ER=[]
+rho3=[]
+R=287
+A=2*np.pi*0.255*0.25
+V=[]
+res_time=[]
 
 for i in range(4):
     FAR_actual=mdot[i]/mdot3[i]
     ER.append(FAR_actual/FAR_stoich_ker)
+    rho3.append(P3[i]/(R*T3[i]))
+    V.append(mdot3[i]/(rho3[i]*A))
+    res_time.append(0.25/V[i])
+
 
 #Equivalence Ratio Calcs (In zones)
 
 print(calvalue)
 print(mdot)
 print(ER)
+print(res_time)
